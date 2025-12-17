@@ -304,7 +304,7 @@ TEST_CASES = [
     }
 ]
 
-def prompt_test(question: str, context: list[str]):
+def prompt_test(question: str, context: dict):
     RAG_SYSTEM_PROMPT = """You are a precise and careful question-answering assistant. Your task is to answer questions based strictly on the provided source documents. Accuracy is your highest priority.
     Core Instructions
     1. Source Fidelity
@@ -366,13 +366,23 @@ def prompt_test(question: str, context: list[str]):
     """
 
     client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
-    formatted_context = "\n\n".join([f"Document {i+1}:\n{doc}" for i, doc in enumerate(context)])
+    formatted_context = "\n\n".join([f"Document {i+1}:\n{doc}" for i, doc in enumerate(context["documents"][0])])
 
     result = client.models.generate_content(
         model="gemini-2.5-flash-lite",
         contents=RAG_SYSTEM_PROMPT.format(documents=formatted_context, question=question),
     )
-    return result.text
+    return {
+        "answer": result.text,
+        "sources": [
+            {
+                "chunk_id": context["ids"][0][i],
+                "text_preview": doc[:150] + "...",
+                "distance": context["distances"][0][i],
+            }
+            for i, doc in enumerate(context["documents"][0])
+        ]
+    }
 
 
 def run_test_suite():
