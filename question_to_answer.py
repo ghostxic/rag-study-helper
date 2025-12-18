@@ -29,19 +29,26 @@ def embedding_to_chunks(embedding: list[str]) -> dict:
         n_results=5
     )
     return result
-question = ""
-embedding = question_to_embedding(question)
-chunks = embedding_to_chunks(embedding)
 
-print("=== QUERY RESULTS ===")
-print(f"Number of results: {len(chunks['ids'][0])}")
-print(f"\nTop 3 retrieved chunks:")
-for i in range(min(3, len(chunks['documents'][0]))):
-    print(f"\n--- Chunk {i+1} ---")
-    print(f"ID: {chunks['ids'][0][i]}")
-    print(f"Distance: {chunks['distances'][0][i]}")  # Lower = more similar
-    print(f"Text: {chunks['documents'][0][i][:300]}...")
+## Debugging for these methods
+# question = ""
+# embedding = question_to_embedding(question)
+# chunks = embedding_to_chunks(embedding)
 
-# Now send to LLM
-print("\n=== LLM RESPONSE ===")
-print(prompt_test(question, chunks))
+# print("=== QUERY RESULTS ===")
+# print(f"Number of results: {len(chunks['ids'][0])}")
+# print(f"\nTop 3 retrieved chunks:")
+# for i in range(min(3, len(chunks['documents'][0]))):
+#     print(f"\n--- Chunk {i+1} ---")
+#     print(f"ID: {chunks['ids'][0][i]}")
+#     print(f"Distance: {chunks['distances'][0][i]}")  # Lower = more similar
+#     print(f"Text: {chunks['documents'][0][i][:300]}...")
+
+# # Now send to LLM
+# print("\n=== LLM RESPONSE ===")
+# print(prompt_test(question, chunks))
+
+def question_to_answer(question: str) -> str:
+    embedding = question_to_embedding(question)
+    chunks = embedding_to_chunks(embedding)
+    return prompt_test(question, chunks)

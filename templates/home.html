@@ -6,6 +6,26 @@
     <title>Document</title>
 </head>
 <body>
-    <h>HI</h>
+    {% if pdf_json %}
+        <h>Pdf confirmation:</h>
+        <h>{{ pdf_json }}</h>
+    {% endif %}
+
+    {% if response_json %}
+        <h>LLM response:</h>
+        <h>{{ response_json['answer'] }}</h>
+    {% endif %}
+
+    <h>Upload New File</h>
+    <form method=POST enctype=multipart/form-data action="/upload">
+        <input type=file name=file>
+        <input type=submit value=Upload>
+    </form>
+    <h>Question:</h>
+    <form method="POST" action="/ask">
+        <input type="text" name=question placeholder="Ask your question:" required>
+        <input type=submit>
+    </form>
+
 </body>
 </html>

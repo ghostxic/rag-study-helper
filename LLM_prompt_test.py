@@ -369,7 +369,7 @@ def prompt_test(question: str, context: dict):
     formatted_context = "\n\n".join([f"Document {i+1}:\n{doc}" for i, doc in enumerate(context["documents"][0])])
 
     result = client.models.generate_content(
-        model="gemini-2.5-flash-lite",
+        model="gemini-2.5-flash",
         contents=RAG_SYSTEM_PROMPT.format(documents=formatted_context, question=question),
     )
     return {

@@ -4,10 +4,18 @@ from google.genai import types
 from dotenv import load_dotenv
 import os
 import chromadb
+from datetime import datetime
+import uuid
+from dataclasses import dataclass
 
 load_dotenv()
+@dataclass
+class All_Data:
+    doc_id: str
+    filename: str
+    num_chunks: int
 
-def pdf_path_to_chromadb(path: str) -> None:
+def pdf_path_to_chromadb(path: str) -> list[dict]:
 
     content = pdf_path_text(path)
     client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
@@ -25,13 +33,33 @@ def pdf_path_to_chromadb(path: str) -> None:
     collection = client.get_or_create_collection(name="my_collection")
     # Extract the actual embedding vectors from ContentEmbedding objects
     embedding_arrays = [embedding.values for embedding in result.embeddings]
+    
+    # Get filename from path
+    filename = os.path.basename(path)
+    upload_date = datetime.now().isoformat()
+    num_chunks = len(content)
+    
+    # Create metadatas for each chunk
+    doc_id = str(uuid.uuid4())
+    metadatas = [
+        {
+            "document_id": doc_id,
+            "filename": filename,
+            "upload_date": upload_date,
+            "total_chunks": num_chunks,
+            "chunk_index": i
+        }
+        for i in range(len(content))
+    ]
+    
     collection.add(
-        ids=[f"{path}_{i}" for i in range(len(content))],
+        ids=[f"{doc_id}_{i}" for i in range(len(content))],
         embeddings=embedding_arrays,
-        documents=content
-        
+        documents=content,
+        metadatas=metadatas
     )
-    print("Success! Chunks stored: " + str(len(content)))
 
-pdf_path_to_chromadb("test_files/induction_answers.pdf")
-pdf_path_to_chromadb("test_files/induction_problems.pdf")
+    d = All_Data(doc_id, filename, num_chunks)
+
+
+    return d
