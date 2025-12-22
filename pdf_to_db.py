@@ -20,19 +20,29 @@ def pdf_path_to_chromadb(path: str) -> list[dict]:
     content = pdf_path_text(path)
     client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
-    result = client.models.embed_content(
-        model="gemini-embedding-001",
-        contents=content,
-        config=types.EmbedContentConfig(task_type="RETRIEVAL_DOCUMENT", output_dimensionality=768)
-    )
+    # Process content in batches of 100 (API limit)
+    batch_size = 100
+    all_embeddings = []
+    
+    for i in range(0, len(content), batch_size):
+        batch_content = content[i:i + batch_size]
+        
+        result = client.models.embed_content(
+            model="gemini-embedding-001",
+            contents=batch_content,
+            config=types.EmbedContentConfig(task_type="RETRIEVAL_DOCUMENT", output_dimensionality=768)
+        )
+        
+        # Extract embeddings from this batch
+        batch_embeddings = [embedding.values for embedding in result.embeddings]
+        all_embeddings.extend(batch_embeddings)
+    
     client = chromadb.CloudClient(
             api_key=os.getenv("CHROMA_API_KEY"),
             tenant=os.getenv("CHROMA_TENANT"),
             database=os.getenv("CHROMA_DATABASE")
         )
     collection = client.get_or_create_collection(name="my_collection")
-    # Extract the actual embedding vectors from ContentEmbedding objects
-    embedding_arrays = [embedding.values for embedding in result.embeddings]
     
     # Get filename from path
     filename = os.path.basename(path)
@@ -54,12 +64,11 @@ def pdf_path_to_chromadb(path: str) -> list[dict]:
     
     collection.add(
         ids=[f"{doc_id}_{i}" for i in range(len(content))],
-        embeddings=embedding_arrays,
+        embeddings=all_embeddings,
         documents=content,
         metadatas=metadatas
     )
 
     d = All_Data(doc_id, filename, num_chunks)
-
 
     return d

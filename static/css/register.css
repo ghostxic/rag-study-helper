@@ -1,0 +1,97 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --color-bg: #7BB8FF;
+    --color-bg-secondary: #C8FFF1;
+    --color-text: #1A1A1A;              /* unchanged, still optimal for contrast */
+    --color-text-secondary: #434D4C;    /* slightly darker cool gray */
+
+    --color-border: #9CD7C9;            /* deeper mint-gray border */
+
+    --color-primary: #4EF2C9;           /* darker, richer mint accent */
+    --color-primary-hover: #3EC2A3;     /* deeper hover state for clear interaction */
+
+    --color-success: #10b981;
+    --color-error: #ef4444;
+
+    --text-xs: 0.75rem;
+    --text-sm: 0.875rem;
+    --text-base: 1rem;
+    --text-lg: 1.25rem;
+    --text-xl: 1.563rem;
+    --text-2xl: 1.953rem;
+    --text-3xl: 2.441rem;
+
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    --space-2xl: 3rem;
+    --space-3xl: 4rem;
+}
+
+html {
+    font-size: 16px;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+}
+
+body {
+    line-height: 1.6;
+    font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: var(--text-base);
+    background-image: linear-gradient(to bottom, var(--color-bg), var(--color-bg-secondary));
+}
+
+h1 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--text-3xl);
+    color: var(--color-text);
+    margin-top: var(--space-3xl);
+    margin-bottom: var(--space-lg);
+}
+
+h2 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--text-lg);
+    color: var(--color-text);
+    margin-top: var(--space-3xl);
+    margin-bottom: var(--space-lg);
+
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: var(--space-3xl);
+}
+
+.form input {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: var(--space-lg);
+    width: 30vw;
+    height: 10vh;
+    font-size: var(--text-lg);
+    border-radius: 50px;
+    border-color: var(--color-border);
+    border-style: solid;
+    text-indent: var(--space-lg);
+}
+
+.form input:not([type="submit"]) {
+    text-indent: var(--space-lg);
+}

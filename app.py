@@ -13,6 +13,13 @@ import uuid
 app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = os.environ["UPLOAD_FOLDER"]
 app.config["SECRET_KEY"] = os.environ["SECRET_KEY"]
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=5)
+app.config["SESSION_PERMANENT"] = True
+
+supabase = create_client(
+        os.environ["SUPABASE_URL"],
+        os.environ["SUPABASE_API_KEY"]
+    )
 
 # Create uploads folder if it doesn't exist
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
@@ -88,6 +95,53 @@ def cleanup_temp_file(filepath):
     except Exception as e:
         print(f"Warning: Could not delete temporary file {filepath}: {str(e)}")
 
+@app.route("/", methods=["GET"])
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        email = request.form.get("email")
+        password = request.form.get("password")
+
+        try:
+            auth = supabase.auth.sign_up({"email": email, "password": password})
+            user = supabase.auth.sign_in_with_password({"email": email, "password": password})
+            session["id"] = user.user.id
+            session["email"] = user.user.email
+            return redirect(url_for("home"))
+        except Exception as e:
+            session["redirect_data"] = f"Unable to register with Supabase, please try again. Error: {e}"
+            return redirect(url_for("register"))
+    redirect_data = session.pop("redirect_data", None)
+    return render_template("register.html", redirect_data = redirect_data)
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if "id" in session:
+        return redirect(url_for("home"))
+    if request.method == "POST":
+        email = request.form.get("email")
+        password = request.form.get("password")
+        try:
+            user = supabase.auth.sign_in_with_password({"email": email, "password": password})
+            session["id"] = user.user.id
+            session["email"] = user.user.email
+            return redirect(url_for("home"))
+        except Exception as e:
+            session["redirect_data"] = f"Unable to login with Supabase, please try again. Error: {e}"
+            return redirect(url_for("login"))
+    redirect_data = session.pop("redirect_data", None)
+    return render_template("login.html", redirect_data = redirect_data)
+
+@app.route("/logout", methods=["GET", "POST"])
+def logout():
+    try:
+        supabase.auth.sign_out()
+    except:
+        pass
+    
+    session.clear()
+    session["redirect_data"] = "Successfully logged out!"
+    return redirect(url_for('login'))
 
 @app.route("/upload", methods=["POST"])
 def upload_document():
@@ -95,14 +149,14 @@ def upload_document():
     
     try:
         if "file" not in request.files:
-            session["pdf_json"] = jsonify({"error": "No file provided"})
+            session["pdf_json"] = {"error": "No file provided"}
             return redirect(url_for("home"))
         
         file = request.files["file"]
         
         is_valid, error_message, status_code = validate_file_upload(file)
         if not is_valid:
-            session["pdf_json"] = jsonify({"error": error_message})
+            session["pdf_json"] = {"error": error_message}
             return redirect(url_for("home"))
         
         filepath = save_uploaded_file(file)
@@ -134,14 +188,13 @@ def upload_document():
 def ask_question():
     question = request.form.get("question")
     response = question_to_answer(question)
-    supabase = create_client(
-        os.environ["SUPABASE_URL"],
-        os.environ["SUPABASE_API_KEY"]
-    )
     message_id = str(uuid.uuid4())
+
+    user_id = session.get("id")
 
     supabase.table("chat_history").insert({
             "chat_id": message_id,
+            "user_id": user_id,
             "question": question,
             "answer": response,
             "timestamp": datetime.now().isoformat()
@@ -149,11 +202,15 @@ def ask_question():
     session["response_json"] = jsonify(response).get_json()
     return redirect(url_for("home"))
 
-@app.route("/")
+@app.route("/home")
 def home():
+    if "id" not in session:
+        session["redirect_data"] = "Please login in to access this page."
+        return redirect(url_for("register"))
     pdf_json = session.pop("pdf_json", None)
     response_json = session.pop("response_json", None)
-    return render_template("home.html", pdf_json = pdf_json, response_json = response_json)
+    redirect_data = session.pop("redirect_data", None)
+    return render_template("home.html", pdf_json = pdf_json, response_json = response_json, redirect_data = redirect_data, username = session["email"].split("@")[0])
 
 if __name__ == "__main__":
     with app.app_context():

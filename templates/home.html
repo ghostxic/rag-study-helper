@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="static/css/home.css">
     <title>Document</title>
 </head>
 <body>
-    {% if pdf_json %}
-        <h>Pdf confirmation:</h>
-        <h>{{ pdf_json }}</h>
+    {% if redirect_data %}
+        <h>LLM response:</h>
+        <h>{{ redirect_data }}</h>
     {% endif %}
 
     {% if response_json %}
@@ -16,15 +17,29 @@
         <h>{{ response_json['answer'] }}</h>
     {% endif %}
 
+
+    {% if pdf_json and pdf_json.get('error') %}
+        <p style="color: red;"><strong>Error:</strong> {{ pdf_json['error'] }}</p>
+    {% elif pdf_json and pdf_json.get('success') %}
+        <p style="color: green;"><strong>Success:</strong> {{ pdf_json['message'] }}</p>
+        <p>Document ID: {{ pdf_json['document_id'] }}</p>
+        <p>Filename: {{ pdf_json['filename'] }}</p>
+        <p>Chunks: {{ pdf_json['num_chunks'] }}</p>
+    {% endif %}
+    <h>Hello, {{ username }}!</h>
     <h>Upload New File</h>
-    <form method=POST enctype=multipart/form-data action="/upload">
-        <input type=file name=file>
-        <input type=submit value=Upload>
+    <form method="POST" enctype="multipart/form-data" action="/upload">
+        <input type="file" name="file" accept=".pdf" required>
+        <input type="submit" value="Upload">
     </form>
     <h>Question:</h>
     <form method="POST" action="/ask">
         <input type="text" name=question placeholder="Ask your question:" required>
         <input type=submit>
+    </form>
+
+    <form method="POST" action="/logout">
+        <input type="submit" value="Logout">
     </form>
 
 </body>
