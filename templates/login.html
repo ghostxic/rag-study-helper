@@ -3,16 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="static/css/login.css">
+    <link rel="stylesheet" href="static/css/auth.css">
     <title>Login</title>
 </head>
 <body>
-    <h>Login</h>
-    <form method=POST action="/login">
+    <h1>Latiance</h1>
+    <div class="logo">
+        <img src="static/images/latias.png">
+    </div>
+
+    <form method=POST action="/login" class="form">
         <input type=email name="email" placeholder="Email">
         <input type=password name="password" placeholder="Password">
-        <input type=submit value=Login>
+        <input type=submit value="Login">
     </form>
-    Logged in? Try <a href="/register">registering</a>
+    <h2>Logged in? Try<a href="/register" class="login-text">registering</a></h2>
 </body>
 </html>
